@@ -1,6 +1,15 @@
+from typing import List
+from pydantic import BaseModel
+import enum
 
-questions = {
-    'NameCorp':"""The name of the 10-K filing company. If the 10-K filing 
+questions = {}
+#NameCorp
+class NameCorp(BaseModel):
+    """Data model for a company"""
+    val: str
+
+questions['NameCorp'] = {
+        'description':"""The name of the 10-K filing company. If the 10-K filing 
 company did not file bankruptcy, add the name of the principal filing
 subsidiary in parentheses, followed by “only.” If more than one 10-K filing
 company is administratively consolidated in the same bankruptcy case, add
@@ -10,36 +19,35 @@ this bankruptcy filing in parentheses. Remove apostrophes from names.
 Access will tolerate apostrophes, but the WebBRD will not. If a company
 name contains an apostrophe, the company’s date will not appear in View
 data by company.""",
+'output_class': NameCorp
+}
 
-'AssetsPetition':"""Total assets of the debtors, as indicated on “Exhibit A” to
-the petition, in millions of dollars. The SEC requires that companies file
-Exhibit A if they remain public as of filing. If the Exhibit A amount listed
-differs substantially from AssetsBefore, we investigate whether the amount
-listed is for only the petitioning corporation or for the entire consolidated
-group. If the amount is for the consolidate group, we use it. If the amount is
-for only the petitioning corporation, we investigate whether the total
-amounts listed on Exhibit A for all filers in the group indicate the aggregate
-assets of the group. If they do, we use the total. If an amount is not available
-from either source, we use the best amount available from (1) the first monthly 
-operating report filed for the group in the bankruptcy case, (2) the
-first 10-K or 10-Q filed with the SEC during the bankruptcy case, or (3) the
-debtors’ schedules. For data entered prior to August 2004, we accepted
-amounts from several sources. First, for cases filed in the 1980s, we
-accepted the amount stated in on a list of bankruptcy cases maintained by
-the SEC. When the SEC shows a different amount on a later list, we used
-the later amount. Second, we accepted the assets at filing reported in
-reputable publications. Third, in a few cases, we used data from the
-schedules filed with the court. Most of the AssetsPetition data were
-collected for both older and newer cases were collected beginning in August
-2004. That month we adopted these new protocols: (1) We do not use
-Exhibit A amounts that appear not to be consolidated. (2) We will use
-amounts that appeared on Exhibit A, if available. (3) If an Exhibit A amount
-is not available, we will use the next best source among the following –
-schedules or monthly operating reports filed in the case; balance sheets filed
-with the SEC during the case. 
-""",
+#AssetsPetition
+class AssetsPetition(BaseModel):
+    """Data model for AssetsPetition, unit in millions of dollars"""
+    val: float
 
-'CeoFiling':"""The name of the debtor’s chief executive officer at filing. If no
+questions['AssetsPetition'] = {
+        'description':"""The name of the 10-K filing company. If the 10-K filing 
+company did not file bankruptcy, add the name of the principal filing
+subsidiary in parentheses, followed by “only.” If more than one 10-K filing
+company is administratively consolidated in the same bankruptcy case, add
+the names of the additional 10-K filers in parentheses, not followed by
+“only.” If the company has filed bankruptcy more than once, add the year of
+this bankruptcy filing in parentheses. Remove apostrophes from names.
+Access will tolerate apostrophes, but the WebBRD will not. If a company
+name contains an apostrophe, the company’s date will not appear in View
+data by company.""",
+'output_class': AssetsPetition
+}
+
+#CeoFiling
+class CeoFiling(BaseModel):
+    """Data model for CeoFiling, the name of the CEO"""
+    val: str
+
+questions['CeoFiling'] = {
+        'description':"""The name of the debtor’s chief executive officer at filing. If no
 person holds the chief executive officer title at filing, enter the name of the
 highest officer, followed by a comma and the name of the office held. E.g.,
 “Samuel Wilson, president.” If no one is CEO, but someone is acting CEO,
@@ -50,15 +58,30 @@ the new one if he is on the petition or making a statement or doing
 something as CEO by the moment of filing. If the new CEO is in office on
 the DateFiled but there is no information regarding activity from either the
 new or old CEO on the DateFiled, use the new CEO. """,
+'output_class': CeoFiling
+}
 
-'CityFiled':"""The city in which the case was filed. The city will always be a
+#CityFiled
+class CityFiled(BaseModel):
+    """Data model for CityFiled, the city in which the case was filed"""
+    val: str
+
+questions['CityFiled'] = {
+        'description':"""The city in which the case was filed. The city will always be a
 city in which court meets and nearly always a city in which there is a clerk’s
 office. If you have a district, but not a court city, run searches that combine
 the name of the debtor with each of the court cities in the district to find
-statements linking the case to a court city.
-""",
+statements linking the case to a court city.""",
+'output_class': CityFiled
+}
 
-'ClaimsUnsec':"""
+#ClaimsUnsec
+class ClaimsUnsec(BaseModel):
+    """Data model for ClaimsUnsec, the total amount, in millions of dollars, of non-priority"""
+    val: float
+
+questions['ClaimsUnsec'] = {
+        'description':"""
 The total amount, in millions of dollars, of non-priority
 unsecured claims, as indicated in the disclosure statement and compiled on
 the Distribution Spreadsheet. If the disclosure statement information is
@@ -84,6 +107,47 @@ the settlement is for $1 million, and the other unsecured creditors are getting
 50 cents on the dollar, we may infer that the parties agreed that the
 unsecured claim was $2 million.
 """,
+'output_class': ClaimsUnsec
+}
+
+#CommCred
+
+class CommCred_type(str, enum.Enum):
+    """Possible Values for CommCred"""
+    Yes = "Yes"
+    No = "No"
+
+
+class CommCred(BaseModel):
+    """
+    Class for a single class label prediction.
+    """
+    val: CommCred_type
+
+
+questions['CommCred'] = {
+        'description':"""
+Was an official committee appointed to represent the
+unsecured creditors prior to case disposition? Yes/no. The best evidence is a
+copy of the appointment. Committees appointed to represent particular
+subgroups of creditors, such as a particular group of bondholders, are not
+creditors’ committees. In some older cases, if the disclosure statement
+indicates that no unsecured creditors’ committee had been appointed we
+assumed that none was appointed prior to confirmation. In Refco Finance,
+Inc., the creditors’ committee bifurcated. We recorded counsel for the
+original committee and treated the second committee as an “additional
+committee.” In Envirodyne Industries Inc., two official committees were
+appointed to represent Trade Creditors and Bondholders. We considered
+these to be subgroups and excluded them both. If the case was dismissed
+before the order for relief, enter “no order for relief.” Other options are
+“Chapter 7 at filing” and “case not disposed.”
+""",
+'output_class': CommCred
+}
+
+
+questions = {
+
 
 'CommCred':"""
 Was an official committee appointed to represent the
@@ -355,6 +419,3 @@ overlap, characterize the case by the first to file, even if that case is
 dismissed in favor of the other.
 """
 }
-
-def return_question():
-    return questions
